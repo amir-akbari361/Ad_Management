@@ -23,9 +23,9 @@
 ---
 
 ## 📸 تصاویر برنامه  
-![نمایی از برنامه](screenshot1.png)
-![صفحه جزییات آگهی](screenshot2.png)
-![صفحه لاگین](screenshot3.png)
+![نمایی از برنامه](https://github.com/amir-akbari361/Ad_Management/blob/main/Screenshot1.png)
+![صفحه جزییات آگهی](https://github.com/amir-akbari361/Ad_Management/blob/main/Screenshot2.png)
+![صفحه لاگین](https://github.com/amir-akbari361/Ad_Management/blob/main/Screenshot3.png)
 ---
 
 ## 🎯 نحوه اجرا  
