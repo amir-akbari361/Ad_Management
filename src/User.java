@@ -30,12 +30,23 @@ public class User implements Serializable {
         ratings.add(rating);
     }
     public double getAverageRating() {
+//        int[] sum= {0};
+//        int[] counter= {0};
+//        ratings.forEach(rating -> {
+//            sum[0] += rating;
+//            counter[0]++;
+//        });
+//        double averageRating = sum[0]>0? (double) sum[0] /counter[0]:0.0;
+
         if(ratings.isEmpty())
         {
             return 0.0;
         }
         return ratings.stream().mapToInt(Integer::intValue).average().orElse(0.0);
+
+
     }
+
 
     @Override
     public String toString() {

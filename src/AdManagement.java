@@ -47,7 +47,7 @@ public class AdManagement extends Application {
         searchBar.setPadding(new Insets(15));
         searchBar.setAlignment(Pos.CENTER_LEFT);
         searchBar.setStyle("-fx-background-color: #34495e;");
-
+//سرچ بار
         TextField searchField = new TextField();
         searchField.setPromptText("Search for ads...");
         searchField.setPrefWidth(350);
@@ -83,7 +83,7 @@ public class AdManagement extends Application {
 
         searchBar.getChildren().addAll(searchField, searchButton, advancedSearchButton, spacer, authButtons);
 
-
+//سایدبار و کتگوری ها
         VBox sidebar = new VBox(20);
         sidebar.setPadding(new Insets(20));
         sidebar.setAlignment(Pos.TOP_CENTER);
@@ -140,7 +140,6 @@ public class AdManagement extends Application {
                     }
                 }
         );
-
         Button deleteAdButton = new Button("Delete Ad");
         deleteAdButton.setStyle("-fx-background-color: #e74c3c; -fx-text-fill: white; -fx-font-weight: bold;");
         deleteAdButton.setOnAction(e ->
@@ -193,6 +192,7 @@ public class AdManagement extends Application {
 
         Scene scene = new Scene(root, 1000, 800);
         primaryStage.setTitle("Ad Management System");
+        primaryStage.setResizable(false);
         primaryStage.setScene(scene);
         primaryStage.show();
     }
@@ -334,9 +334,7 @@ public class AdManagement extends Application {
         titleLabel.setTextFill(Color.web("#34495e"));
         titleLabel.setStyle("-fx-padding: 0 0 15 0;");
 
-        List<Ad> userAds = ads.stream()
-                .filter(ad -> ad.getOwner().equals(loggedInUser.getEmail()))
-                .collect(Collectors.toList());
+        List<Ad> userAds = ads.stream().filter(ad -> ad.getOwner().equals(loggedInUser.getEmail())).collect(Collectors.toList());
 
         if (userAds.isEmpty()) {
             Label noAdsLabel = new Label("You have no ads to edit.");
@@ -529,6 +527,13 @@ public class AdManagement extends Application {
         Stage messagesStage = new Stage();
         messagesStage.setTitle("Your Messages");
 
+        //با این که loggedInUser و username باهم برابرند ولی درست فیلتر نمیشه و فالس برمیگردونه
+        /*for (Message msg : messages) {
+            System.out.println("Recipient: " + msg.getRecipient().getUsername() + " | Logged-in user: " + loggedInUser.getUsername());
+            System.out.println("Equality check: " + msg.getRecipient().equals(loggedInUser));
+        }*/
+
+
         VBox messagesLayout = new VBox(15);
         messagesLayout.setPadding(new Insets(20));
         messagesLayout.setAlignment(Pos.CENTER);
@@ -538,14 +543,19 @@ public class AdManagement extends Application {
         titleLabel.setFont(Font.font("Arial", FontWeight.BOLD, 20));
         titleLabel.setTextFill(Color.web("#34495e"));
 
-        List<Message> userMessages = messages.stream().filter(message -> message.getRecipient().equals(loggedInUser)).collect(Collectors.toList());
+        //List<Message> userMessages = messages.stream().filter(message -> message.getRecipient().equals(loggedInUser)).collect(Collectors.toList());
+        //کد جایگزین(equal درست کار نمیکرد)
+        //با این که دو مقدار برابر بود رفرنس فرق میکرد و فقط پیام های جدید که رفرنس یکسان داشتند نشون داده میشند
+        List<Message> userMessages = messages.stream().filter(message -> message.getRecipient().getUsername().equals(loggedInUser.getUsername())).collect(Collectors.toList());
+
 
         if (userMessages.isEmpty()) {
             Label noMessagesLabel = new Label("You have no messages.");
             noMessagesLabel.setFont(Font.font("Arial", FontWeight.NORMAL, 16));
             noMessagesLabel.setTextFill(Color.web("#e74c3c"));
             messagesLayout.getChildren().addAll(titleLabel, noMessagesLabel);
-        } else {
+        }
+        else {
             ListView<Message> messagesListView = new ListView<>();
             messagesListView.getItems().addAll(userMessages);
 

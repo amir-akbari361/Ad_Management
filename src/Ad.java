@@ -58,7 +58,6 @@ public class Ad implements Serializable {
     public String toString() {
         return "Title: " + title + "\nDescription: " + description + "\nPrice: " + price + "\nCategory: " + category + "\nPhone: " + phone + (imagePath != null ? "\nImage: " + imagePath : "");
     }
-
 }
 
 
