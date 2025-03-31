@@ -1,37 +1,31 @@
-# 🏷️ مدیریت خرید و فروش آگهی‌ها  
+# 🏷️ Ad Management System
 
-یک سیستم مدیریت آگهی که کاربران می‌توانند در آن **آگهی‌های خود را ثبت، ویرایش و مشاهده کنند**. این پروژه به زبان **Java** و با استفاده از **JavaFX** برای رابط گرافیکی برای پروژه پایان ترم مبانی کامپیوتر و برنامه نویسی توسعه داده شده است. همچنین دارای ویژگی‌های امتیازدهی به فروشندگان می‌باشد.
+This project is designed to manage advertisements and provide solutions for creating, editing, and analyzing advertisement campaigns more efficiently. Below is an overview of the important features and structure of the project.
 
----
-
-## 🚀 ویژگی‌ها  
-✅ ثبت، ویرایش و حذف آگهی‌ها  
-✅ نمایش لیست آگهی‌های موجود  
-✅ امتیازدهی به فروشندگان  
-✅ ذخیره اطلاعات در فایل متنی   
-✅ امکان پیام دادن به فروشنده
-✅ امکان جست و جوی پیشرفته میان آگهی ها
-✅ رابط کاربری ساده و کاربرپسند (JavaFX) 
 
 ---
 
-## 🛠️ تکنولوژی‌های استفاده شده  
-- **Java 17**  
-- **JavaFX** برای رابط کاربری  
-- **Git & GitHub** برای مدیریت نسخه  
-- **فایل متنی (TXT)** برای ذخیره‌سازی داده‌ها  
+## 🚀 Features:
+✅ Register, Edit, and Delete Ads
+✅ Display a List of Available Ads
+✅ Rate Sellers
+✅ Save Information in a Text File
+✅ Message Sellers
+✅ Advanced Search Among Ads
+✅ Simple and User-Friendly Interface (JavaFX)
 
 ---
 
-## 📸 تصاویر برنامه  
-![نمایی از برنامه](https://github.com/amir-akbari361/Ad_Management/blob/main/Screenshot1.png)
-![صفحه جزییات آگهی](https://github.com/amir-akbari361/Ad_Management/blob/main/Screenshot2.png)
-![صفحه لاگین](https://github.com/amir-akbari361/Ad_Management/blob/main/Screenshot3.png)
+## 🛠️ Technologies Used:
+-Java
+-JavaFX for the User Interface
+-Git & GitHub for Version Control
+-Text File (TXT) for Data Storage
+
 ---
 
-## 🎯 نحوه اجرا  
-برای اجرای این پروژه:  
-1. IntelliJ IDEA را باز کنید.  
-2. پروژه را Clone کنید:  
-git clone https://github.com/amir-akbari361/Ad_Management.git
-3.فایل Main.java را اجرا کنید.
+## 📸  Program Screenshots  
+![Program Overview](https://github.com/amir-akbari361/Ad_Management/blob/main/Screenshot1.png)
+![Ad Details Page](https://github.com/amir-akbari361/Ad_Management/blob/main/Screenshot2.png)
+![Login Page](https://github.com/amir-akbari361/Ad_Management/blob/main/Screenshot3.png)
+---
