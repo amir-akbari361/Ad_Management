@@ -1181,9 +1181,21 @@ public class AdManagement extends Application {
         priceField.setPromptText("Price");
         priceField.setMaxWidth(300);
 
+        priceField.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue.matches("\\d*")) {
+                priceField.setText(newValue.replaceAll("[^\\d]", ""));
+            }
+        });
+
         TextField phoneField = new TextField();
         phoneField.setPromptText("Phone Number");
         phoneField.setMaxWidth(300);
+
+        phoneField.textProperty().addListener((observable, oldValue, newValue) -> {
+            if (!newValue.matches("\\d*")) {
+                phoneField.setText(newValue.replaceAll("[^\\d]", ""));
+            }
+        });
 
         TextArea descriptionField = new TextArea();
         descriptionField.setPromptText("Description");
@@ -1202,6 +1214,17 @@ public class AdManagement extends Application {
             TextField mileageField = new TextField();
             mileageField.setPromptText("Mileage (km)");
             mileageField.setMaxWidth(300);
+
+            yearField.textProperty().addListener((observable, oldValue, newValue) -> {
+                if (!newValue.matches("\\d*")) {
+                    yearField.setText(newValue.replaceAll("[^\\d]", ""));
+                }
+            });
+            mileageField.textProperty().addListener((observable, oldValue, newValue) -> {
+                if (!newValue.matches("\\d*")) {
+                    mileageField.setText(newValue.replaceAll("[^\\d]", ""));
+                }
+            });
 
             CheckBox accidentCheckBox = new CheckBox("Is the vehicle accidented?");
 
@@ -1234,6 +1257,7 @@ public class AdManagement extends Application {
         saveButton.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 20; -fx-border-radius: 5;");
         saveButton.setOnAction(e -> {
             String title = titleField.getText();
+
             String priceText = priceField.getText();
             String phone = phoneField.getText();
             String description = descriptionField.getText();
@@ -1245,6 +1269,7 @@ public class AdManagement extends Application {
             }
 
             double price;
+
             try {
                 price = Double.parseDouble(priceText);
             } catch (NumberFormatException ex) {
@@ -1262,8 +1287,11 @@ public class AdManagement extends Application {
 
                 int year;
                 int mileage;
+
                 try {
                     year = Integer.parseInt(yearText);
+
+
                     mileage = Integer.parseInt(mileageText);
                 } catch (NumberFormatException ex) {
                     showAlert("Error", "Year and mileage must be valid numbers.", Alert.AlertType.ERROR);
