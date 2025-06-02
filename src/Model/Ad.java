@@ -1,6 +1,9 @@
+package Model;
+
 import java.io.Serializable;
 
-public class Ad implements Serializable {
+public class Ad implements Serializable{
+    private int id;
     private String title;
     private String description;
     private double price;
@@ -9,7 +12,8 @@ public class Ad implements Serializable {
     private String phone;
     private String imagePath;
 
-    public Ad(String title, String description, double price, String category, String owner,  String phone, String imagePath) {
+    public Ad(int id,String title, String description, double price, String category, String owner,  String phone, String imagePath) {
+        this.id = id;
         this.title = title;
         this.description = description;
         this.price = price;
@@ -17,6 +21,14 @@ public class Ad implements Serializable {
         this.owner = owner;
         this.phone = phone;
         this.imagePath = imagePath;
+    }
+    public Ad(String title, String description, double price, String category, String owner, String phone, String imagePath) {
+        this(-1, title, description, price, category, owner, phone, imagePath);
+    }
+
+    public int getId()
+    {
+        return id;
     }
     public String getOwner()
     {
@@ -30,6 +42,12 @@ public class Ad implements Serializable {
     public void setTitle(String title) {
         this.title = title;
     }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+
     public String getCategory(){
         return category;
     }
@@ -47,6 +65,8 @@ public class Ad implements Serializable {
     public String getTitle(){
         return title;
     }
+
+
     public void edit(String title, String description, double price, String phone, String imagePath) {
         this.title = title;
         this.description = description;

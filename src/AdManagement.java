@@ -1,3 +1,5 @@
+import DAL.DatabaseConnection;
+import Model.*;
 import javafx.animation.FadeTransition;
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -15,15 +17,13 @@ import javafx.stage.FileChooser;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 import java.io.*;
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class AdManagement extends Application {
     private GridPane adsGrid = new GridPane();
-    private static final String USERS_FILE = "users.dat";
-    private static final String ADS_FILE = "ads.dat";
-    private static final String MESSAGES_FILE = "messages.dat";
     private List<User> users = new ArrayList<>();
     private List<Ad> ads = new ArrayList<>();
     private List<Message> messages = new ArrayList<>();
@@ -32,9 +32,9 @@ public class AdManagement extends Application {
 
     @Override
     public void init() throws Exception {
-        loadUsers();
-        loadAds();
-        loadMessages();
+        users = DatabaseConnection.loadUsers();
+        ads = DatabaseConnection.loadAds();
+        messages = DatabaseConnection.loadMessages(users);
 
         System.out.println("User:" + users.size() + " " + "ad:" + ads.size() + " " + "message:" + messages.size());
     }
@@ -218,7 +218,7 @@ public class AdManagement extends Application {
         maxPriceField.setPromptText("Maximum price");
 
         ComboBox<String> categoryBox = new ComboBox<>();
-        categoryBox.getItems().addAll("All","Electronics","Vehicle","General");
+        categoryBox.getItems().addAll("All", "Electronics", "Vehicle", "General");
         categoryBox.setValue("All");
         Button searchButton = new Button("Search");
         searchButton.setStyle("-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 20; -fx-border-radius: 5;");
@@ -266,53 +266,6 @@ public class AdManagement extends Application {
         }
     }
 
-    private void loadUsers() {
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(USERS_FILE))) {
-            users = (List<User>) ois.readObject();
-        } catch (IOException | ClassNotFoundException e) {
-            System.out.println("No users file found. Starting fresh.");
-        }
-    }
-
-    private void loadAds() {
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(ADS_FILE))) {
-            ads = (List<Ad>) ois.readObject();
-        } catch (IOException | ClassNotFoundException e) {
-            System.out.println("No users file found. Starting fresh.");
-        }
-    }
-
-    private void loadMessages() {
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(MESSAGES_FILE))) {
-            messages = (List<Message>) ois.readObject();
-        } catch (IOException | ClassNotFoundException e) {
-            System.out.println("No messages file found. Starting fresh.");
-        }
-    }
-
-    private void saveUsers() {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(USERS_FILE))) {
-            oos.writeObject(users);
-        } catch (IOException e) {
-            System.out.println("Error saving users: " + e.getMessage());
-        }
-    }
-
-    private void saveAds() {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(ADS_FILE))) {
-            oos.writeObject(ads);
-        } catch (IOException e) {
-            System.out.println("Error saving ads: " + e.getMessage());
-        }
-    }
-
-    private void saveMessages() {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(MESSAGES_FILE))) {
-            oos.writeObject(messages);
-        } catch (IOException e) {
-            System.out.println("Error saving messages: " + e.getMessage());
-        }
-    }
 
     private void showUserAdsForEditing() {
         Stage userAdsStage = new Stage();
@@ -433,7 +386,7 @@ public class AdManagement extends Application {
                 Ad selectedAd = adsComboBox.getValue();
                 if (selectedAd != null) {
                     ads.remove(selectedAd);
-                    saveAds();
+                    DatabaseConnection.deleteAd(selectedAd.getId());
                     updateAdsGrid(ads);
                     userAdsStage.close();
                     showAlert("Success", "Ad deleted successfully!", Alert.AlertType.INFORMATION);
@@ -478,7 +431,38 @@ public class AdManagement extends Application {
         });
 
         VBox categorySpecificFields = new VBox(10);
-        if (ad instanceof VehicleAd) {
+
+        if (ad instanceof ElectronicsAd electronicsAd) {
+            TextField modelField = new TextField(electronicsAd.getModel());
+            TextField colorField = new TextField(electronicsAd.getColor());
+            CheckBox tradeCheckBox = new CheckBox("Trade?");
+            tradeCheckBox.setSelected(electronicsAd.isTrade());
+
+            categorySpecificFields.getChildren().addAll(new Label("Model:"), modelField,
+                    new Label("Color:"), colorField, tradeCheckBox);
+
+            Button saveButton = new Button("Save");
+            saveButton.setStyle("-fx-background-color: #3498db; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 20;");
+            saveButton.setOnAction(e -> {
+                try {
+
+                    electronicsAd.edit(titleField.getText(), descriptionField.getText(),
+                            Double.parseDouble(priceField.getText()), phoneField.getText(),
+                            imagePathLabel.getText(), modelField.getText(), colorField.getText(),
+                            tradeCheckBox.isSelected());
+
+                    DatabaseConnection.updateAd(electronicsAd);
+                    updateAdsGrid(ads);
+                    showAlert("Success", "Ad successfully updated!", Alert.AlertType.INFORMATION);
+                    editStage.close();
+                } catch (Exception ex) {
+                    showAlert("Error", "Failed to update ad: " + ex.getMessage(), Alert.AlertType.ERROR);
+                }
+            });
+
+            formLayout.getChildren().addAll(titleField, priceField, phoneField, descriptionField, categorySpecificFields,
+                    uploadImageButton, imagePathLabel, saveButton);
+        } else if (ad instanceof VehicleAd) {
             VehicleAd vehicle = (VehicleAd) ad;
 
             TextField yearField = new TextField(String.valueOf(vehicle.getYear()));
@@ -493,12 +477,13 @@ public class AdManagement extends Application {
             saveButton.setOnAction(e -> {
                 try {
                     vehicle.edit(titleField.getText(), descriptionField.getText(), Double.parseDouble(priceField.getText()), phoneField.getText(), imagePathLabel.getText(), Integer.parseInt(yearField.getText()), Integer.parseInt(mileageField.getText()), accidentCheckBox.isSelected());
-                    editStage.close();
-                    saveAds();
+
+                    DatabaseConnection.updateAd(vehicle);
                     updateAdsGrid(ads);
-                    showAlert("Success", "Ad updated successfully!", Alert.AlertType.INFORMATION);
-                } catch (NumberFormatException ex) {
-                    showAlert("Error", "Please enter valid numeric values.", Alert.AlertType.ERROR);
+                    showAlert("Success", "Ad successfully updated!", Alert.AlertType.INFORMATION);
+                    editStage.close();
+                } catch (SQLException ex) {
+                    throw new RuntimeException(ex);
                 }
             });
 
@@ -508,10 +493,15 @@ public class AdManagement extends Application {
             saveButton.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-padding: 10 20; -fx-border-radius: 5;");
             saveButton.setOnAction(e -> {
                 ad.edit(titleField.getText(), descriptionField.getText(), Double.parseDouble(priceField.getText()), phoneField.getText(), imagePathLabel.getText());
-                editStage.close();
-                saveAds();
+
+                try {
+                    DatabaseConnection.updateAd(ad);
+                } catch (SQLException ex) {
+                    ex.printStackTrace();
+                }
                 updateAdsGrid(ads);
-                showAlert("Success", "Ad updated successfully!", Alert.AlertType.INFORMATION);
+                showAlert("Success", "Ad successfully updated!", Alert.AlertType.INFORMATION);
+                editStage.close();
             });
 
             formLayout.getChildren().addAll(titleField, priceField, phoneField, descriptionField, uploadImageButton, imagePathLabel, saveButton);
@@ -528,7 +518,7 @@ public class AdManagement extends Application {
         messagesStage.setTitle("Your Messages");
 
         //با این که loggedInUser و username باهم برابرند ولی درست فیلتر نمیشه و فالس برمیگردونه
-        /*for (Message msg : messages) {
+        /*for (Model.Message msg : messages) {
             System.out.println("Recipient: " + msg.getRecipient().getUsername() + " | Logged-in user: " + loggedInUser.getUsername());
             System.out.println("Equality check: " + msg.getRecipient().equals(loggedInUser));
         }*/
@@ -554,8 +544,7 @@ public class AdManagement extends Application {
             noMessagesLabel.setFont(Font.font("Arial", FontWeight.NORMAL, 16));
             noMessagesLabel.setTextFill(Color.web("#e74c3c"));
             messagesLayout.getChildren().addAll(titleLabel, noMessagesLabel);
-        }
-        else {
+        } else {
             ListView<Message> messagesListView = new ListView<>();
             messagesListView.getItems().addAll(userMessages);
 
@@ -615,7 +604,11 @@ public class AdManagement extends Application {
             } else {
                 Message replyMessage = new Message(loggedInUser, originalMessage.getSender(), replyText);
                 messages.add(replyMessage);
-                saveMessages();
+                try {
+                    DatabaseConnection.saveMessage(replyMessage);
+                } catch (SQLException ex) {
+                    throw new RuntimeException(ex);
+                }
                 showAlert("Success", "Your reply has been sent.", Alert.AlertType.INFORMATION);
                 replyStage.close();
             }
@@ -820,11 +813,20 @@ public class AdManagement extends Application {
                 alert.setHeaderText(null);
                 alert.setContentText("All fields are required!");
                 alert.showAndWait();
-            } else {
+            }
+            else if(!isValidEmail(emailField.getText())) {
+                Alert alert = new Alert(Alert.AlertType.WARNING);
+                alert.setTitle("Invalid email");
+                alert.setHeaderText(null);
+                alert.setContentText("Invalid Email!");
+                alert.showAndWait();
+
+            }
+            else  {
                 User user = new User(usernameField.getText(), emailField.getText(), passwordField.getText());
                 users.add(user);
                 loggedInUser = user;
-                saveUsers();
+                DatabaseConnection.saveUsers(user);
 
                 Alert alert = new Alert(Alert.AlertType.INFORMATION);
                 alert.setTitle("Registration Successful");
@@ -847,6 +849,11 @@ public class AdManagement extends Application {
         signUpStage.show();
     }
 
+    private boolean isValidEmail(String email) {
+        String emailRegex = "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,6}$";
+        return email != null && email.matches(emailRegex);
+    }
+
     private void showAdDetails(String title, double price, String imageUrl, String description, String contact, Ad ad) {
         Stage detailsStage = new Stage();
         detailsStage.setTitle("Ad Details");
@@ -862,20 +869,23 @@ public class AdManagement extends Application {
         sellerRatingLabel.setFont(Font.font("Verdana", FontWeight.BOLD, 20));
         sellerRatingLabel.setTextFill(Color.web("#34495e"));
 
-        User owner=null;
-        for(User user:users)
-        {
-            if(user.getEmail().equals(ad.getOwner()))
-            {
-                owner=user;
+        User owner = null;
+        for (User user : users) {
+            if (user.getEmail().equals(ad.getOwner())) {
+                owner = user;
             }
-            else
-            {
-                owner=null;
+        }
+        if (owner != null) {
+            try (Connection con = DatabaseConnection.getConnection()) {
+                DatabaseConnection.getUserRatingDetails(owner);
+            } catch (SQLException ex) {
+                ex.printStackTrace();
+                showAlert("Error", "Failed to load seller rating.", Alert.AlertType.ERROR);
             }
         }
 
-        double sellerRating = owner.getAverageRating();
+        double sellerRating = owner != null ? owner.getAverageRating() : 0.0;
+
         Label ratingValue = new Label(String.format("%.1f", sellerRating));
         ratingValue.setFont(Font.font("Verdana", FontWeight.BOLD, 20));
         ratingValue.setTextFill(Color.web("#f39c12"));
@@ -887,7 +897,6 @@ public class AdManagement extends Application {
         HBox sellerRatingBox = new HBox(10, sellerRatingLabel, stars, ratingValue);
         sellerRatingBox.setAlignment(Pos.CENTER);
         sellerRatingBox.setPadding(new Insets(10));
-
 
 
         ImageView adImage;
@@ -937,12 +946,19 @@ public class AdManagement extends Application {
         Button buyButton = new Button("Buy Now");
         buyButton.setStyle("-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 18px; -fx-padding: 12 45; -fx-border-radius: 10;");
         buyButton.setOnAction(e -> {
-            ads.remove(ad);
-            saveAds();
-            updateAdsGrid(ads);
-            showAlert("congratulation", "Ad purchased successfully", Alert.AlertType.INFORMATION);
-            showRatingDialog(ad);
-            detailsStage.close();
+            if (loggedInUser == null) {
+                showAlert("error", "You are not logged in!", Alert.AlertType.ERROR);
+            } else if (!loggedInUser.getEmail().equals(ad.getOwner())) {
+                ads.remove(ad);
+                DatabaseConnection.deleteAd(ad.getId());
+                updateAdsGrid(ads);
+                showAlert("congratulation", "Ad purchased successfully", Alert.AlertType.INFORMATION);
+
+                showRatingDialog(ad);
+                detailsStage.close();
+            } else {
+                showAlert("error", "You can't rate your self!", Alert.AlertType.ERROR);
+            }
         });
         buyButton.setOnMouseEntered(e -> buyButton.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 18px; -fx-padding: 12 45; -fx-border-radius: 10;"));
         buyButton.setOnMouseExited(e -> buyButton.setStyle("-fx-background-color: #2ecc71; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 18px; -fx-padding: 12 45; -fx-border-radius: 10;"));
@@ -952,7 +968,7 @@ public class AdManagement extends Application {
         messageButton.setOnAction(e -> {
             if (loggedInUser == null) {
                 showAlert("error", "You are not logged in!", Alert.AlertType.ERROR);
-            } else if (loggedInUser != null) {
+            } else {
                 VBox messageBox = new VBox(20);
                 messageBox.setPadding(new Insets(20));
                 messageBox.setAlignment(Pos.CENTER);
@@ -979,7 +995,11 @@ public class AdManagement extends Application {
                     String recipient_email = ad.getOwner();
                     Message message = new Message(loggedInUser, recipient_user, messageArea.getText());
                     messages.add(message);
-                    saveMessages();
+                    try {
+                        DatabaseConnection.saveMessage(message);
+                    } catch (SQLException ex) {
+                        throw new RuntimeException(ex);
+                    }
                     Alert alert = new Alert(Alert.AlertType.INFORMATION);
                     alert.setTitle("Message Sent");
                     alert.setHeaderText(null);
@@ -1005,7 +1025,7 @@ public class AdManagement extends Application {
 
         actionButtons.getChildren().addAll(buyButton, messageButton, closeButton);
 
-        contentLayout.getChildren().addAll(adImage, adTitle, adPrice, adDescription, adContact,sellerRatingBox);
+        contentLayout.getChildren().addAll(adImage, adTitle, adPrice, adDescription, adContact, sellerRatingBox);
         detailsLayout.setCenter(contentLayout);
         detailsLayout.setBottom(actionButtons);
 
@@ -1013,6 +1033,7 @@ public class AdManagement extends Application {
         detailsStage.setScene(detailsScene);
         detailsStage.show();
     }
+
     private String getStarsFromRating(double rating) {
         int fullStars = (int) rating;
         boolean hasHalfStar = (rating - fullStars) >= 0.5;
@@ -1062,17 +1083,29 @@ public class AdManagement extends Application {
         submitRatingButton.setStyle("-fx-background-color: #27ae60; -fx-text-fill: white; -fx-font-weight: bold; -fx-font-size: 14px; -fx-padding: 10 20; -fx-border-radius: 8;");
         submitRatingButton.setOnAction(e -> {
             int rating = (int) ratingSlider.getValue();
-            for (User user : users) {
-                if (user.getEmail().equals(ad.getOwner())) {
-                    user.rateUser(rating);
-                    saveUsers();
-                    Alert alert = new Alert(Alert.AlertType.INFORMATION);
-                    alert.setTitle("Rating Submitted");
-                    alert.setHeaderText(null);
-                    alert.setContentText("Thank you! You rated the seller: " + rating + " stars.");
-                    alert.showAndWait();
-                    ratingStage.close();
-                }
+
+            String sellerEmail = ad.getOwner();
+            String buyerEmail = loggedInUser.getEmail();
+            DatabaseConnection.addRating(sellerEmail, buyerEmail, rating);
+            try {
+                DatabaseConnection.updateUserRatings(sellerEmail);
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
+            User updatedSeller = null;
+            try {
+                updatedSeller = DatabaseConnection.getUserByEmail(sellerEmail);
+            }
+            catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
+            if (updatedSeller != null) {
+                Alert alert = new Alert(Alert.AlertType.INFORMATION);
+                alert.setTitle("Rating Submitted");
+                alert.setHeaderText(null);
+                alert.setContentText("Thank you! You rated the seller: " + rating + " stars.");
+                alert.showAndWait();
+                ratingStage.close();
             }
         });
 
@@ -1086,6 +1119,7 @@ public class AdManagement extends Application {
         ratingStage.setScene(ratingScene);
         ratingStage.show();
     }
+
     private void showCategorySelection(Stage primaryStage) {
         Stage categoryStage = new Stage();
         categoryStage.setTitle("Select Category");
@@ -1278,9 +1312,10 @@ public class AdManagement extends Application {
             }
 
             if (category.equals("General")) {
-                ads.add(new Ad(title, description, price, "General", loggedInUser.getEmail(), phone, imagePath));
-            }
-            else if (category.equals("Vehicles")) {
+                Ad ad = new Ad(title, description, price, "General", loggedInUser.getEmail(), phone, imagePath);
+                ads.add(ad);
+                DatabaseConnection.saveAds(ad);
+            } else if (category.equals("Vehicles")) {
                 String yearText = ((TextField) categorySpecificFields.getChildren().get(0)).getText();
                 String mileageText = ((TextField) categorySpecificFields.getChildren().get(1)).getText();
                 boolean accidentStatus = ((CheckBox) categorySpecificFields.getChildren().get(2)).isSelected();
@@ -1301,21 +1336,22 @@ public class AdManagement extends Application {
                     showAlert("Error", "All fields must be filled out.", Alert.AlertType.ERROR);
                     return;
                 }
-                ads.add(new VehicleAd(title, description, price, "Vehicle", loggedInUser.getEmail(), phone, imagePath, year, mileage, accidentStatus));
-            }
-            else if(category.equals("Electronics"))
-            {
-                String model=((TextField)categorySpecificFields.getChildren().get(0)).getText();
-                String color=((TextField)categorySpecificFields.getChildren().get(1)).getText();
-                boolean tradeStatus=((CheckBox)categorySpecificFields.getChildren().get(2)).isSelected();
-                if(model.isEmpty()||color.isEmpty())
-                {
-                    showAlert("Error","All fields must be filled out.",Alert.AlertType.ERROR);
+                Ad ad = new VehicleAd(title, description, price, "Vehicle", loggedInUser.getEmail(), phone, imagePath, year, mileage, accidentStatus);
+                ads.add(ad);
+                DatabaseConnection.saveAds(ad);
+
+            } else if (category.equals("Electronics")) {
+                String model = ((TextField) categorySpecificFields.getChildren().get(0)).getText();
+                String color = ((TextField) categorySpecificFields.getChildren().get(1)).getText();
+                boolean tradeStatus = ((CheckBox) categorySpecificFields.getChildren().get(2)).isSelected();
+                if (model.isEmpty() || color.isEmpty()) {
+                    showAlert("Error", "All fields must be filled out.", Alert.AlertType.ERROR);
                     return;
                 }
-                ads.add(new ElectronicsAd(title,description,price,"Electronics",loggedInUser.getEmail(),phone,imagePath,model,color,tradeStatus));
+                Ad ad = new ElectronicsAd(title, description, price, "Electronics", loggedInUser.getEmail(), phone, imagePath, model, color, tradeStatus);
+                DatabaseConnection.saveAds(ad);
+                ads.add(ad);
             }
-            saveAds();
             updateAdsGrid(ads);
             showAlert("Success", "Ad successfully added!", Alert.AlertType.INFORMATION);
             addAdStage.close();
@@ -1327,6 +1363,7 @@ public class AdManagement extends Application {
         addAdStage.setScene(addAdScene);
         addAdStage.show();
     }
+
     private void showAlert(String title, String message, Alert.AlertType alertType) {
         Alert alert = new Alert(alertType);
         alert.setTitle(title);
@@ -1334,6 +1371,7 @@ public class AdManagement extends Application {
         alert.setContentText(message);
         alert.showAndWait();
     }
+
     private Button createCategoryButton(String category) {
         Button button = new Button(category);
         button.setPrefWidth(150);

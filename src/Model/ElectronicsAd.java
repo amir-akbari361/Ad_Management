@@ -1,12 +1,21 @@
+package Model;
+
 public class ElectronicsAd extends Ad {
     private String model;
     private String color;
     private boolean trade;
-    public ElectronicsAd(String title, String description, double price, String category, String owner, String phone, String imagePath, String model, String color, boolean trade){
-        super(title,description,price,category,owner,phone,imagePath);
-        this.model=model;
-        this.color=color;
-        this.trade=trade;
+    public ElectronicsAd(int id, String title, String description, double price, String category, String owner, String phone, String imagePath, String model, String color, boolean trade) {
+        super(id, title, description, price, category, owner, phone, imagePath);
+        this.model = model;
+        this.color = color;
+        this.trade = trade;
+    }
+
+    public ElectronicsAd(String title, String description, double price, String category, String owner, String phone, String imagePath, String model, String color, boolean trade) {
+        super(title, description, price, category, owner, phone, imagePath);
+        this.model = model;
+        this.color = color;
+        this.trade = trade;
     }
     public void edit(String title, String description, double price, String phone,String imagePath, String model,String color, boolean trade) {
         super.edit(title,description,price,phone,imagePath);
