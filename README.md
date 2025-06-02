@@ -1,4 +1,4 @@
-# 🏷️ Ad Management System
+# 🏷️ Model.Ad Management System
 
 This project is designed to manage advertisements and provide solutions for creating, editing, and analyzing advertisement campaigns more efficiently. Below is an overview of the important features and structure of the project.
 
@@ -10,15 +10,15 @@ This project is designed to manage advertisements and provide solutions for crea
 ✅ Display a List of Available Ads
 ✅ Rate Sellers
 ✅ Save Information in a Text File
-✅ Message Sellers
+✅ Model.Message Sellers
 ✅ Advanced Search Among Ads
-✅ Simple and User-Friendly Interface (JavaFX)
+✅ Simple and Model.User-Friendly Interface (JavaFX)
 
 ---
 
 ## 🛠️ Technologies Used:
 -Java
--JavaFX for the User Interface
+-JavaFX for the Model.User Interface
 -Git & GitHub for Version Control
 -Text File (TXT) for Data Storage
 
@@ -26,6 +26,6 @@ This project is designed to manage advertisements and provide solutions for crea
 
 ## 📸  Program Screenshots  
 ![Program Overview](https://github.com/amir-akbari361/Ad_Management/blob/main/Screenshot1.png)
-![Ad Details Page](https://github.com/amir-akbari361/Ad_Management/blob/main/Screenshot2.png)
+![Model.Ad Details Page](https://github.com/amir-akbari361/Ad_Management/blob/main/Screenshot2.png)
 ![Login Page](https://github.com/amir-akbari361/Ad_Management/blob/main/Screenshot3.png)
 ---

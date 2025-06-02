@@ -1,3 +1,5 @@
+package Model;
+
 import java.io.Serializable;
 import java.util.Date;
 
@@ -46,9 +48,11 @@ public class Message implements Serializable {
         this.timestamp = timestamp;
     }
 
+
+
     @Override
     public String toString() {
-        return"From: "+sender + "\nTo: "+ recipient + "\nSent: "+ timestamp +"\nMessage: "+ content;
+        return"From: "+sender + "\nTo: "+ recipient + "\nSent: "+ timestamp +"\nModel.Message: "+ content;
     }
 
 }
